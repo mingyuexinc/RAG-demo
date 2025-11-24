@@ -1,12 +1,4 @@
-from fastapi import FastAPI
-
-import requests
+import uvicorn
 
 if __name__ == "__main__":
-    response = requests.post(
-        "http://localhost:8000/query",
-        json={"query": "客户经理的考核标准是什么?"}
-    )
-
-    result = response.json()
-    print(result["answer"])
+    uvicorn.run("api_server:app",host="127.0.0.1",port=8000,reload=True)

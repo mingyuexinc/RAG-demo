@@ -1,13 +1,10 @@
-import logging
-
 from langchain_classic.retrievers import MultiQueryRetriever
 from langchain_openai import ChatOpenAI
-from PyPDF2 import PdfReader
 from langchain_community.vectorstores import FAISS
 from langchain_core.callbacks import get_usage_metadata_callback
 
 from config import Config
-from vector_store import create_vector_database
+from vector_store import get_or_create_vector_database
 
 import os
 
@@ -67,7 +64,7 @@ def rag_pipeline(query:str, vectorstore:FAISS):
     return response_data
 
 def chat_with_query(query:str):
-    vector_db = create_vector_database()
+    vector_db = get_or_create_vector_database()
     answer = rag_pipeline(query,vector_db)
     return answer
 

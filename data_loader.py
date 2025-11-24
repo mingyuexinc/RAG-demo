@@ -1,21 +1,10 @@
 import logging
-import os
 from typing import List, Tuple
 
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from config import Config
 
-FILE_SUFFIX = [".pdf",".doc",".docx",".txt"]
-
-def get_file_list(folder_path:str):
-    file_list = []
-    for root, dirs, files in os.walk(folder_path):
-        for file in files:
-            if os.path.splitext(file)[1] in FILE_SUFFIX:
-                file_path = os.path.join(root, file)
-                file_list.append(file_path)
-    return file_list
 
 def extract_text_with_page_numbers(pdf) -> Tuple[str, List[int]]:
 
@@ -46,14 +35,14 @@ def process_text_with_splitter(text:str) -> list[str]:
     return chunks
 
 def data_loader(file_path):
-    pdf_file_list = get_file_list(file_path)
-    all_chunks = []
-    for pdf in pdf_file_list:
-        pdf = PdfReader(pdf)
+    try:
+        pdf = PdfReader(file_path)
         text, page_numbers = extract_text_with_page_numbers(pdf)
         chunks = process_text_with_splitter(text)
-        all_chunks.extend(chunks)
-    return all_chunks
+    except Exception as e:
+        logging.error(f"Error processing file: {str(e)}")
+        raise e
+    return chunks
 
 # unit test
 # if __name__ == "__main__":

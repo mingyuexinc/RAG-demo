@@ -2,6 +2,7 @@ import logging
 import os
 from typing import List
 
+import faiss
 from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_community.vectorstores import FAISS
 from data_loader import data_loader
@@ -10,7 +11,6 @@ from config import Config
 
 
 def get_vector_database(chunks:List[str],embeddings:DashScopeEmbeddings, save_path:str = None)->FAISS:
-
     # create knowledge database
     knowledge_database = FAISS.from_texts(chunks, embeddings)
     logging.debug("create knowledge database from chunks...")
@@ -35,16 +35,23 @@ def load_vector_database(load_path:str,embeddings = None) -> FAISS:
 
     return knowledge_database
 
-def create_vector_database() -> FAISS:
-    loader_path = Config.FILE_LOAD_PATH
-    chunks_test = data_loader(loader_path)
-    embedding_model = build_embedding()
+def get_or_create_vector_database(chunks:List[str] = None) -> FAISS:
     save_dir = Config.VECTOR_DB_SAVE_PATH
-    if not os.path.exists(save_dir) or os.path.getsize(save_dir) == 0:
-        vector_database = get_vector_database(chunks_test,embedding_model,save_path=save_dir)
+    if os.path.exists(save_dir) and any(os.scandir(save_dir)):
+        embeddings = build_embedding()
+        return load_vector_database(save_dir,embeddings)
     else:
-        vector_database = load_vector_database(save_dir)
-    return vector_database
+        embeddings = build_embedding()
+        return get_vector_database(chunks,embeddings,save_dir)
+
+# def add_documents_to_vector_database(chunks:List[str],vector_database:FAISS) -> FAISS:
+#     if chunks:
+#         vector_database = get_or_create_vector_database()
+#         embeddings = build_embedding()
+#         vector_database.add_texts(texts= chunks, embeddings=embeddings)
+#     return vector_database
+
+
 
 
 # if __name__ == "__main__":
