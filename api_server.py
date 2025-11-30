@@ -2,13 +2,17 @@ import logging
 import os
 import shutil
 import uuid
+from enum import unique
 
 from fastapi import FastAPI, HTTPException, File, UploadFile
+from langchain_classic.retrievers import MultiQueryRetriever
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 from config import Config
 from data_loader import data_loader
 from rag_pipeline import chat_with_query
+from retriever import generate_query_variants, retrieve_with_score
 from vector_store import get_or_create_vector_database
 
 app = FastAPI(title="RAG Demo", version="1.0.1")
@@ -25,6 +29,12 @@ class UploadResponse(BaseModel):
     message:str
     filename:str
     file_id:str
+
+class SearchResponse(BaseModel):
+    query:str
+    retrieved_documents:list
+    similarity_score:list[float]
+
 
 @app.post("/query", response_model=QueryResponse)
 async def query_api(request:QueryRequest):
@@ -64,5 +74,29 @@ async def upload_document(file:UploadFile = File(...)):
     except Exception as e:
         logging.error(f"File upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/search",response_model=SearchResponse)
+async def search(query:str):
+    vector_db = get_or_create_vector_database()
+    multi_query = generate_query_variants(query)
+    all_results = []
+
+    for query in multi_query:
+        results = retrieve_with_score(vector_db, query)
+        all_results.extend(results)
+
+    unique = {}
+    for doc,score in all_results:
+        key = doc.page_content
+        if key not in unique or score > unique[key][1]:
+            unique[key] = (doc,score)
+
+    final_docs = sorted(unique.values(), key=lambda x: x[1], reverse=True)[:5]
+
+    return SearchResponse(
+        query=query,
+        retrieved_documents=[doc.page_content for doc, score in final_docs],
+        similarity_score=[score for doc, score in final_docs]
+    )
 
 
