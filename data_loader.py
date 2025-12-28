@@ -1,6 +1,5 @@
 import logging
 from typing import List, Tuple
-
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from config import Config

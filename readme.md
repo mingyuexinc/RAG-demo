@@ -17,3 +17,7 @@
 2. start the FastAPI service:
     uvicorn api_server:app --host 127.0.0.1 --port 8000 --reload
 3. run main.py
+
+
+# result
+![flow_chart_result](./result/flow_chart_result.png)

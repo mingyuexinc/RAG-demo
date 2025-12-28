@@ -1,11 +1,9 @@
 import logging
 import os
+
 from typing import List
-
-
 from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_community.vectorstores import FAISS
-from data_loader import data_loader
 from embedding import build_embedding
 from config import Config
 

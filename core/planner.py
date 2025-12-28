@@ -1,0 +1,44 @@
+import json
+import re
+
+
+from config import Config
+from prompts.prompt_manager import PromptManager
+from .executor import ExecutionPlan
+from model import ModelManager
+
+
+class TaskPlanner:
+    def __init__(self):
+        model_manager = ModelManager()
+        self.prompt_manager = PromptManager()
+        chat_llm_model = model_manager.create_model_instance()
+        self.llm = chat_llm_model
+
+    def analyze_task(self, query: str):
+        prompt = self.prompt_manager.render(
+           "templates/planner_template.txt",
+           query=query,
+           task_schema=Config.JSON_TASK_SCHEMA
+        )
+
+        response = self.llm.invoke(prompt)
+        parsed_plan = self.parse_plan(response.content)
+        return parsed_plan
+
+    def parse_plan(self, response: str) -> ExecutionPlan:
+
+        if not response:
+            raise ValueError("Empty plan response")
+        cleaned = re.sub(r"```json|```", "", response).strip()
+        raw = json.loads(cleaned)
+        # parse
+        plan = ExecutionPlan(
+            task_type=raw.get("task_type"),
+            need_tools=raw.get("need_tools", False),
+            tools=raw.get("tools", []),
+            tool_params=raw.get("tool_params", {}),
+        )
+        # validate
+        plan.validate(available_tools=["knowledge_search", "summarizer", "chart_gen"])
+        return plan

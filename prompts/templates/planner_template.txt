@@ -1,0 +1,30 @@
+请分析以下用户查询，并判断任务类型及是否需要使用工具。
+
+可选任务类型包括：
+1. knowledge_qa：从文档中查询事实性信息
+2. flowchart_generation：根据制度或流程文档生成流程图
+3. summary：对文档内容进行总结
+
+可用工具说明：
+- knowledge_search：从知识库中检索相关文档
+- summarizer：对检索结果进行结构化整理（仅在流程图或复杂总结任务中使用）
+- chart_gen：基于整理后的内容生成流程图（仅在 flowchart_generation 任务中使用）
+
+规则：
+1. 如果是 knowledge_qa，仅允许使用 knowledge_search
+2. summarizer 只能在 flowchart_generation 或 summary 中使用
+3. chart_gen 只能在 flowchart_generation 中使用
+4. 工具之间存在数据依赖关系时，需要在 tool_params 中显式表达;工具参数引用必须精确到 output_key 及其字段
+5. 不要生成真实的工具执行结果
+
+用户查询：
+{query}
+
+请仅返回一个合法的 JSON 对象：
+- 不要使用 Markdown
+- 不要使用 ```json
+- 不要添加任何额外文本
+- 不要添加注释
+JSON 结构如下：
+
+{task_schema}

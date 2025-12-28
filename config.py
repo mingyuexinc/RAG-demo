@@ -22,3 +22,23 @@ class Config:
 
     # support file type
     FILE_SUFFIX = ["pdf", "doc", "docx", "txt"]
+
+    JSON_TASK_SCHEMA = """
+    {
+      "task_type": "knowledge_qa | flowchart_generation | summary",
+      "need_tools": true,
+      "tools": ["knowledge_search", "summarizer", "chart_gen"],
+      "tool_params": {
+         "knowledge_search": {
+            "query": "string"
+         },
+         "summarizer": {
+            "documents": "knowledge_search.result.documents"
+         },
+         "chart_gen": {
+            "summarized_text": "summarizer.result"
+         }
+      }
+    }
+    """
+
