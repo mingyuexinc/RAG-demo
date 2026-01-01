@@ -1,6 +1,7 @@
 from core.executor import ExecutionContext
 from model import ModelManager
 from prompts.prompt_manager import PromptManager
+from result.tool_result import ToolResult
 from tools.base_tool import BaseTool
 
 
@@ -13,7 +14,7 @@ class SummaryTool(BaseTool):
         super().__init__(name=self.name)
         self.prompt = PromptManager()
 
-    def execute(self,context:ExecutionContext) -> str:
+    def execute(self,context:ExecutionContext):
         try:
             documents = context.get("knowledge_search.result")
             documents = documents.get("documents")
@@ -33,10 +34,19 @@ class SummaryTool(BaseTool):
             response = chat_model.invoke(input=summarizer_prompt)
             summary_text = response.content.strip()
 
+            result = ToolResult(
+                success=True,
+                data=summary_text
+            )
             context.set(self.output_key, summary_text)
-            return summary_text
+            return result.to_dict()
         except Exception as e:
-            raise ValueError(f"Failed to summarize content: {str(e)}")
+            result = ToolResult(
+                success=False,
+                error=str(e),
+                data=""
+            )
+            return result.to_dict()
 
 
 

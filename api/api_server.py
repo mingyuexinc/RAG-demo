@@ -8,7 +8,9 @@ from config import Config
 from core.container import AppContainer
 from data_loader import data_loader
 from core.planner import TaskPlanner
-from core.response_generator import QueryResponse, UploadResponse, QueryRequest, process_tool_result
+from result.response_api import QueryResponse, QueryRequest, UploadResponse
+from result.response_generator import process_tool_result
+
 from vector_store import get_or_create_vector_database
 
 app = FastAPI(title="RAG Agent", version="1.0.2")

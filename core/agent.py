@@ -1,35 +1,64 @@
+from copy import deepcopy
 from typing import Dict, Any
 
-from prompts.prompt_manager import PromptManager
-from .executor import ExecutionResult, ExecutionPlan, ExecutionContext
+from core.executor import ExecutionResult, ExecutionPlan, ExecutionContext
 from model import ModelManager
 from tools.base_tool import BaseTool
+from result.tool_result import ToolResult
 
 
 class DocAgent:
-    def __init__(self,tools:Dict[str,BaseTool]):
+    def __init__(self,tools:Dict[str,BaseTool],max_steps = 5,max_retries = 3):
         self.tools = tools
+        self.max_steps = max_steps
+        self.max_retries = max_retries
 
     def execute(self,plan:ExecutionPlan)-> ExecutionResult:
         executed_tools = []
         tool_results = {}
         context = ExecutionContext()
+        step_count = 0
+
         try:
             for tool_name in plan.tools:
-                if tool_name not in self.tools:
-                    raise ValueError(f"Unknown tool: {tool_name}")
-                tool = self.tools[tool_name]
+                if step_count >= self.max_steps:
+                    raise ValueError("Exceeded maximum execution steps: {self.max_step}")
 
-                raw_params = plan.tool_params.get(tool_name,{})
-                resolved_params = self._resolve_params(raw_params, context, tool)
-                if tool_name == "knowledge_search":
-                    set_tool = True
-                else:
-                    set_tool = False
-                result = tool.run(resolved_params,context,set_tool)
+                state_snapshot = {
+                    "executed_tools": executed_tools.copy(),
+                    "tool_results": deepcopy(tool_results),
+                    "context": deepcopy(context)
+                }
 
-                executed_tools.append(tool_name)
-                tool_results[tool_name] = result
+                retry_count = 0
+                success = False
+
+                while retry_count < self.max_retries and not success:
+                    try:
+                        if tool_name not in self.tools:
+                            raise ValueError(f"Unknown tool: {tool_name}")
+                        tool = self.tools[tool_name]
+
+                        raw_params = plan.tool_params.get(tool_name, {})
+                        resolved_params = self._resolve_params(raw_params, context)
+                        if tool_name == "knowledge_search":
+                            set_tool = True
+                        else:
+                            set_tool = False
+                        result = tool.run(resolved_params, context, set_tool)
+
+                        executed_tools.append(tool_name)
+                        tool_results[tool_name] = result
+                        success = result.get("success")
+                    except Exception as e:
+                        retry_count += 1
+                        if retry_count >= self.max_retries:
+                            raise ValueError(f"Failed to execute tool: {tool_name} after {self.max_retries} retries: {str(e)}")
+                        else:
+                            executed_tools = state_snapshot["executed_tools"].copy()
+                            tool_results = state_snapshot["tool_results"].deepcopy()
+                            context = state_snapshot["context"].deepcopy()
+                step_count += 1
 
             return ExecutionResult(
                 success = True,
@@ -37,15 +66,17 @@ class DocAgent:
                 executed_tools = executed_tools,
                 tool_results = tool_results,
             )
+
         except Exception as e:
             return ExecutionResult(
                 success = False,
+                task_type=plan.task_type,
                 executed_tools = executed_tools,
                 tool_results = tool_results,
                 error = str(e)
             )
 
-    def _resolve_params(self,params:Dict[str,Any],context:ExecutionContext,tool:BaseTool) -> Dict[str,Any]:
+    def _resolve_params(self,params:Dict[str,Any],context:ExecutionContext) -> Dict[str,Any]:
         resolved = {}
         for key,value in params.items():
             if isinstance(value, str) and "." in value:

@@ -1,6 +1,8 @@
 from typing import Dict, Any
 from core.executor import ExecutionContext
 from tools.base_tool import BaseTool
+from result.tool_result import ToolResult
+
 import base64
 
 class ChartGenTool(BaseTool):
@@ -18,20 +20,24 @@ class ChartGenTool(BaseTool):
             chart_code = self._generate_flowchart(summarized_text)
             chart_url = self._generate_mermaid_image_url(chart_code)
 
-            result = {
-                "chart_code": chart_code,
-                "chart_url": chart_url,
-                "success": True
+            result_data = {
+                "chart_code":chart_code,
+                "chart_url":chart_url
             }
-            context.set(self.output_key, result)
-            return result
+
+            result = ToolResult(
+                success=True,
+                data=result_data
+            )
+            context.set(self.output_key, result_data)
+            return result.to_dict()
         except Exception as e:
-            return {
-                "chart_url": "",
-                "chart_code": "",
-                "success": False,
-                "error": str(e)
-            }
+            result = ToolResult(
+                success=False,
+                error=str(e),
+                data = {"chart_code":"", "chart_url":""}
+            )
+            return result.to_dict()
 
     def _generate_flowchart(self, content: str) -> str:
 

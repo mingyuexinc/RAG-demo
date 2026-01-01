@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import List
 from core.executor import ExecutionContext
+from result.tool_result import ToolResult
 
 
 class BaseTool(ABC):
@@ -17,8 +18,10 @@ class BaseTool(ABC):
                 raise ValueError(f"Missing required param: {key}")
             if set_input_to_context:
                 context.set(key,params[key])
-        self.execute(context)
-        return context.get(self.output_key)
+        result = self.execute(context)
+        if not isinstance(result,dict) or 'success' not in result:
+            result = ToolResult(success=True,data=result).to_dict()
+        return result
 
 
     @abstractmethod
