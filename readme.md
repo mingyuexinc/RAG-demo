@@ -1,4 +1,4 @@
-# RAG Local Knowledge Base Question and Answer System
+# Enterprise-level Agent Knowledge Base Assistant
 ## packages:
 - pypdf2
 - dashscope
@@ -9,8 +9,8 @@
 - fast-api
 
 ## instruction:
-    A RAG knowledge-based question-answering system developed using the Langchain framework. 
-    It supports multi-text vector retrieval, model backend switching, and FastAPI services.
+    An intelligent agent assistant that supports knowledge retrieval, summary generation,
+    and flowchart generation.
 
 ## run
 1. Install the required packages:
@@ -20,4 +20,4 @@
 
 
 # result
-![flow_chart_result](./result/flow_chart_result.png)
+![flow_chart_result](./assets/api_test/flow_chart_result.png)
