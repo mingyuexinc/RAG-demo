@@ -25,15 +25,23 @@ class ExecutionResult(BaseModel):
 
 
 class ExecutionContext:
-    def __init__(self):
+    def __init__(self,max_size:int = 100):
         self.data = {}
         self.meta = {}
+        self.max_size = max_size
 
     def set(self,key:str,value:Any):
+        if len(self.data) >= self.max_size:
+            self._cleanup()
         self.data[key] = value
 
     def get(self,key:str) -> Any:
         return self.data.get(key)
+
+    def _cleanup(self):
+        if len(self.data) > 0:
+            oldest_key = next(iter(self.data))
+            del self.data[oldest_key]
 
     def get_by_path(self, path: str):
         if path in self.data:

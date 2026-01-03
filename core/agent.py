@@ -4,19 +4,20 @@ from typing import Dict, Any
 from core.executor import ExecutionResult, ExecutionPlan, ExecutionContext
 from model import ModelManager
 from tools.base_tool import BaseTool
-from result.tool_result import ToolResult
 
 
 class DocAgent:
-    def __init__(self,tools:Dict[str,BaseTool],max_steps = 5,max_retries = 3):
+    def __init__(self,tools:Dict[str,BaseTool],max_steps = 5,max_retries = 3,max_content_size=100):
         self.tools = tools
         self.max_steps = max_steps
         self.max_retries = max_retries
+        self.max_content_size = max_content_size
+        self.session_context = {}
 
     def execute(self,plan:ExecutionPlan)-> ExecutionResult:
         executed_tools = []
         tool_results = {}
-        context = ExecutionContext()
+        context = ExecutionContext(max_size=self.max_content_size)
         step_count = 0
 
         try:
