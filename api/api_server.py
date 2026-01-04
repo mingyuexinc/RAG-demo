@@ -4,7 +4,8 @@ import shutil
 import uuid
 
 from fastapi import FastAPI, HTTPException, File, UploadFile
-from config import Config
+
+from config.app_config import AppConfig
 from core.container import AppContainer
 from data_loader import data_loader
 from core.planner import TaskPlanner
@@ -41,9 +42,9 @@ async def upload_document(file:UploadFile = File(...)):
         file_id = str(uuid.uuid4())
         file_extension = file.filename.split(".")[-1]
         # type check
-        if file_extension not in Config.FILE_SUFFIX:
+        if file_extension not in AppConfig.vector.FILE_SUFFIX:
             raise HTTPException(status_code=400, detail="Unsupported file type")
-        upload_dir = Config.FILE_LOAD_PATH
+        upload_dir = AppConfig.vector.FILE_LOAD_PATH
         if not os.path.exists(upload_dir):
             os.makedirs(upload_dir)
         file_path = os.path.join(upload_dir, f"{file_id}.{file_extension}")

@@ -3,17 +3,8 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional, Literal
 
-TaskType = Literal[
-    "knowledge_qa",
-    "flowchart_generation",
-    "summary"
-]
-
-TASK_TOOL_CONSTRAINTS = {
-    "knowledge_qa": ["knowledge_search"],
-    "flowchart_generation": ["knowledge_search", "summarizer", "chart_gen"],
-    "summary": ["knowledge_search", "summarizer"],
-}
+from config.app_config import AppConfig
+from config.executor_config import TaskType, TASK_TOOL_CONSTRAINTS
 
 
 class ExecutionResult(BaseModel):
@@ -70,6 +61,8 @@ class ExecutionPlan:
     need_tools: bool
     tools: List[str]
     tool_params: Dict[str, Dict[str, Any]]
+
+    TASK_TOOL_CONSTRAINTS = AppConfig.executor.TASK_TOOL_CONSTRAINTS
 
     def validate(self, available_tools: List[str]):
         if self.task_type not in TASK_TOOL_CONSTRAINTS:

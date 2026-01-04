@@ -1,8 +1,7 @@
 import json
 import re
 
-
-from config import Config
+from config.app_config import AppConfig
 from prompts.prompt_manager import PromptManager
 from .executor import ExecutionPlan
 from model import ModelManager
@@ -19,7 +18,7 @@ class TaskPlanner:
         prompt = self.prompt_manager.render(
            "templates/planner_template.txt",
            query=query,
-           task_schema=Config.JSON_TASK_SCHEMA
+           task_schema=AppConfig.executor.JSON_TASK_SCHEMA
         )
 
         response = self.llm.invoke(prompt)

@@ -4,7 +4,6 @@ from core.executor import ExecutionResult, TaskType
 from fastapi import HTTPException
 from prompts.prompt_manager import PromptManager
 from result.response_api import QueryRequest, QueryResponse
-from result.tool_result import ToolResult
 
 
 class ResponseGenerator:

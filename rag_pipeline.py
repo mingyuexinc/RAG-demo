@@ -1,30 +1,22 @@
 from langchain_classic.retrievers import MultiQueryRetriever
-from langchain_openai import ChatOpenAI
 from langchain_community.vectorstores import FAISS
 from langchain_core.callbacks import get_usage_metadata_callback
 
-from config import Config
+from model import ModelManager
 from vector_store import get_or_create_vector_database
 
-import os
 
-
-
-def rag_pipeline(query:str, vectorstore:FAISS):
+def rag_pipeline(query:str,model:ModelManager, vectorstore:FAISS):
 
     # similarity search execution
     # docs = vectorstore.similarity_search(query)
 
     # initialize chatLLM
-    chatLLM = ChatOpenAI(
-        api_key=os.getenv(Config.DASHSCOPE_API_KEY),
-        base_url=Config.INFERENCE_MODEL_URL,
-        model=Config.INFERENCE_MODEL_NAME
-    )
+    chat_llm = model.create_model_instance()
 
     retriever = MultiQueryRetriever.from_llm(
         retriever = vectorstore.as_retriever(),
-        llm = chatLLM
+        llm = chat_llm
     )
 
     references = retriever.invoke(query)
@@ -52,7 +44,7 @@ def rag_pipeline(query:str, vectorstore:FAISS):
 
     # answer
     with get_usage_metadata_callback() as cost:
-        response = chatLLM.invoke(input=prompt)
+        response = chat_llm.invoke(input=prompt)
 
     # response
     response_data = {
@@ -65,7 +57,8 @@ def rag_pipeline(query:str, vectorstore:FAISS):
 
 def chat_with_query(query:str):
     vector_db = get_or_create_vector_database()
-    answer = rag_pipeline(query,vector_db)
+    model_llm = ModelManager()
+    answer = rag_pipeline(query,model_llm,vector_db)
     return answer
 
 # if __name__ == "__main__":

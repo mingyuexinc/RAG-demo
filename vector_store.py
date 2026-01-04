@@ -4,8 +4,9 @@ import os
 from typing import List
 from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_community.vectorstores import FAISS
+
+from config.app_config import AppConfig
 from embedding import build_embedding
-from config import Config
 
 
 def get_vector_database(chunks:List[str],embeddings:DashScopeEmbeddings, save_path:str = None)->FAISS:
@@ -34,7 +35,7 @@ def load_vector_database(load_path:str,embeddings = None) -> FAISS:
     return knowledge_database
 
 def get_or_create_vector_database(chunks:List[str] = None) -> FAISS:
-    save_dir = Config.VECTOR_DB_SAVE_PATH
+    save_dir = AppConfig.vector.VECTOR_DB_SAVE_PATH
     if os.path.exists(save_dir) and any(os.scandir(save_dir)):
         embeddings = build_embedding()
         return load_vector_database(save_dir,embeddings)

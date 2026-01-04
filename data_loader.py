@@ -2,7 +2,8 @@ import logging
 from typing import List, Tuple
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from config import Config
+
+from config.app_config import AppConfig
 
 
 def extract_text_with_page_numbers(pdf) -> Tuple[str, List[int]]:
@@ -24,8 +25,8 @@ def process_text_with_splitter(text:str) -> list[str]:
     # create text splitter
     text_spliter = RecursiveCharacterTextSplitter(
         separators = ["\n\n", "\n", " ",".",""],
-        chunk_size = Config.CHUNK_SIZE,
-        chunk_overlap = Config.CHUNK_OVERLAP,
+        chunk_size = AppConfig.vector.CHUNK_SIZE,
+        chunk_overlap = AppConfig.vector.CHUNK_OVERLAP,
         length_function = len,
     )
 
